@@ -1,18 +1,21 @@
+import axios from "axios";
 import { useCallback, useState } from "react";
 import useLoginModal from "@/hooks/useLoginModal";
 import useRegisterModal from "@/hooks/useRegisterModal";
+import {signIn} from "next-auth/react";
 import Input from "../Input";
 import Modal from "../Modal";
+import toast from "react-hot-toast";
 
 const RegisterModal = () => {
   const loginModal = useLoginModal();
   const registerModal = useRegisterModal();
 
-  const { email, setEmail } = useState("");
-  const { password, setPassword } = useState("");
-  const { name, setName } = useState("");
-  const { username, setUsername } = useState("");
-  const { isLoading, setIsLoading } = useState(false);
+  const [ email, setEmail] = useState("");
+  const [ password, setPassword] = useState("");
+  const [ name, setName] = useState("");
+  const [ username, setUsername] = useState("");
+  const [ isLoading, setIsLoading] = useState(false);
 
   const onToggle = useCallback(() => {
     if (isLoading) {
@@ -25,16 +28,28 @@ const RegisterModal = () => {
   const onSubmit = useCallback(async () => {
     try {
       setIsLoading(true);
-
-      // TODO: add register and login
+      console.log(email, password, username, name);
+      await axios.post("/api/register", {
+        email,
+        password,
+        username,
+        name
+      })
+      console.log(email, password, username, name);
+      toast.success("Account created successfully.")
+      signIn("credentials", {
+        email,
+        password
+      })
 
       registerModal.onClose();
     } catch (error) {
       console.log(error);
+      toast.error("Something went wrong!")
     } finally {
       setIsLoading(false);
     }
-  }, [registerModal]);
+  }, [registerModal, email, password, username, name]);
 
   const bodyContent = (
     <div className="flex flex-col gap-4">
@@ -58,6 +73,7 @@ const RegisterModal = () => {
       />
       <Input
         placeholder="Password"
+        type="password"
         onChange={(e) => setPassword(e.target.value)}
         value={password}
         disabled={isLoading}
